@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>EPCON | Home</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:Arial;background:#f0f2f5;margin:0}
+header{background:#1877f2;color:#fff;padding:15px;text-align:center}
+.card{background:#fff;margin:15px;padding:15px;border-radius:10px}
+button{width:100%;padding:12px;margin:6px 0;border:none;border-radius:8px;background:#e4e6eb;font-size:16px}
+.alert{color:red;font-weight:bold}
+</style>
+</head>
+<body>
+
+<header>
+EPCON<br>
+<span id="notify"></span>
+</header>
+
+<div class="card">
+<button onclick="go('tareas.html')">📋 Tareas</button>
+<button onclick="go('perfil.html')">👤 Perfil</button>
+<button onclick="logout()">🚪 Cerrar sesión</button>
+</div>
+
+<script>
+const user=localStorage.getItem("loggedUser");
+if(!user)location.href="index.html";
+
+let tasks=JSON.parse(localStorage.getItem("epconTasks"))||[];
+const pendientes=tasks.filter(t=>t.user===user&&!t.completed).length;
+
+if(pendientes>0){
+document.getElementById("notify").innerHTML=`🔔 ${pendientes} pendientes`;
+}
+
+function go(p){location.href=p}
+function logout(){
+localStorage.removeItem("loggedUser");
+location.href="index.html";
+}
+</script>
+</body>
+</html>

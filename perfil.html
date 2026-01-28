@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>EPCON | Perfil</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:Arial;background:#f0f2f5;display:flex;justify-content:center;align-items:center;height:100vh}
+.card{background:#fff;width:330px;padding:20px;border-radius:10px}
+h2{text-align:center;color:#1877f2}
+input,button{width:100%;padding:10px;margin:8px 0;border-radius:6px}
+button{border:none}
+.save{background:#1877f2;color:#fff}
+.del{background:#e41e3f;color:#fff}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>EPCON</h2>
+<input id="user">
+<input id="pass">
+<button class="save" onclick="save()">Guardar</button>
+<button class="del" onclick="del()">Eliminar cuenta</button>
+<button onclick="location.href='home.html'">⬅️ Volver</button>
+</div>
+
+<script>
+let users=JSON.parse(localStorage.getItem("users"))||[];
+let u=localStorage.getItem("loggedUser");
+let me=users.find(x=>x.user===u);
+user.value=me.user;pass.value=me.pass;
+
+function save(){
+me.user=user.value;me.pass=pass.value;
+localStorage.setItem("users",JSON.stringify(users));
+localStorage.setItem("loggedUser",me.user);
+alert("Perfil actualizado");
+}
+
+function del(){
+if(!confirm("Eliminar cuenta?"))return;
+users=users.filter(x=>x.user!==u);
+localStorage.setItem("users",JSON.stringify(users));
+localStorage.removeItem("loggedUser");
+location.href="index.html";
+}
+</script>
+</body>
+</html>

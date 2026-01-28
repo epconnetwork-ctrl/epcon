@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>EPCON | Pendientes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background:#f0f2f5;
+    margin:0;
+}
+header{
+    background:#1877f2;
+    color:white;
+    text-align:center;
+    padding:15px;
+    font-size:20px;
+}
+.card{
+    background:white;
+    margin:15px;
+    padding:15px;
+    border-radius:10px;
+}
+.task{
+    border-bottom:1px solid #ddd;
+    padding:10px 0;
+}
+.task:last-child{
+    border-bottom:none;
+}
+.date{
+    font-size:13px;
+    color:#666;
+}
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#e4e6eb;
+    font-size:16px;
+    margin-bottom:10px;
+}
+.empty{
+    text-align:center;
+    color:#777;
+    padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>EPCON - Pendientes</header>
+
+<div class="card">
+<button onclick="history.back()">⬅️ Volver</button>
+<div id="list"></div>
+</div>
+
+<script>
+const loggedUser = localStorage.getItem("loggedUser");
+if (!loggedUser) location.href = "index.html";
+
+let tasks = JSON.parse(localStorage.getItem("epconTasks")) || [];
+const list = document.getElementById("list");
+
+const pendientes = tasks.filter(t => 
+    t.user === loggedUser && !t.completed
+);
+
+if (pendientes.length === 0) {
+    list.innerHTML = `<div class="empty">No hay pendientes 🎉</div>`;
+} else {
+    pendientes.forEach((t, i) => {
+        const fecha = t.createdAt
+            ? new Date(t.createdAt).toLocaleString()
+            : "Fecha no registrada";
+
+        list.innerHTML += `
+        <div class="task">
+            <b>${i + 1}. ${t.title}</b><br>
+            👤 ${t.name}<br>
+            📍 ${t.location || "Sin ubicación"}<br>
+            <span class="date">🕒 ${fecha}</span>
+        </div>
+        `;
+    });
+}
+</script>
+
+</body>
+</html>

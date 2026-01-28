@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>EPCON | Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:Arial;background:#f0f2f5;display:flex;justify-content:center;align-items:center;height:100vh}
+.card{background:#fff;width:320px;padding:25px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.2)}
+h2{text-align:center;color:#1877f2}
+input,button{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:1px solid #ccc}
+button{background:#1877f2;color:#fff;border:none}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>EPCON</h2>
+<input id="user" placeholder="Usuario">
+<input id="pass" type="password" placeholder="Contraseña">
+<button onclick="login()">Iniciar sesión</button>
+<button onclick="register()">Crear cuenta</button>
+</div>
+
+<script>
+let users = JSON.parse(localStorage.getItem("users")) || [];
+
+function login(){
+    const u=user.value,p=pass.value;
+    const ok=users.find(x=>x.user===u&&x.pass===p);
+    if(!ok)return alert("Datos incorrectos");
+    localStorage.setItem("loggedUser",u);
+    location.href="home.html";
+}
+
+function register(){
+    const u=user.value,p=pass.value;
+    if(!u||!p)return alert("Completa campos");
+    if(users.some(x=>x.user===u))return alert("Usuario existe");
+    users.push({user:u,pass:p});
+    localStorage.setItem("users",JSON.stringify(users));
+    alert("Cuenta creada");
+}
+</script>
+</body>
+</html>

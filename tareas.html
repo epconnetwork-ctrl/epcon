@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>EPCON | Tareas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background:#f0f2f5;
+    margin:0;
+}
+header{
+    background:#1877f2;
+    color:white;
+    text-align:center;
+    padding:15px;
+    font-size:22px;
+}
+.card{
+    background:white;
+    margin:15px;
+    padding:15px;
+    border-radius:12px;
+}
+input, textarea{
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+button{
+    width:100%;
+    padding:12px;
+    margin-top:5px;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    cursor:pointer;
+}
+.primary{background:#1877f2;color:white;}
+.gray{background:#e4e6eb;}
+.green{background:#42b72a;color:white;}
+.red{background:#e53935;color:white;}
+.task{
+    border-bottom:1px solid #ddd;
+    padding:10px 0;
+}
+.small{font-size:13px;color:#555;}
+</style>
+</head>
+
+<body>
+
+<header>EPCON</header>
+
+<div class="card">
+<button class="gray" onclick="history.back()">⬅️ Volver</button>
+
+<h3>Nueva Actividad</h3>
+
+<input id="title" placeholder="Título del servicio">
+<input id="name" placeholder="Nombre del cliente">
+<input id="phone" placeholder="Teléfono">
+<input id="locality" placeholder="Localidad">
+<input id="references" placeholder="Referencias">
+<input id="plan" placeholder="Plan">
+<input id="cost" placeholder="Costo">
+<input id="location" placeholder="Ubicación (opcional)">
+<textarea id="comments" placeholder="Comentarios"></textarea>
+
+<button class="primary" onclick="addTask()">➕ Agregar</button>
+<button class="gray" onclick="exportPDF()">📄 Exportar PDF</button>
+
+<h4>Mensaje WhatsApp (editable)</h4>
+<textarea id="waMessage"></textarea>
+</div>
+
+<div class="card">
+<h3>Actividades</h3>
+<div id="taskList"></div>
+</div>
+
+<script>
+// 🔐 Usuario logueado
+const loggedUser = localStorage.getItem("loggedUser");
+if(!loggedUser) location.href="index.html";
+
+// 📦 Datos
+let tasks = JSON.parse(localStorage.getItem("epconTasks")) || [];
+
+// 💬 Mensaje WhatsApp
+if(!localStorage.getItem("waTemplate")){
+    localStorage.setItem(
+        "waTemplate",
+        "Hola {{nombre}}, tu servicio {{titulo}} fue registrado.\nPlan: {{plan}}\nCosto: {{costo}}\nUbicación: {{ubicacion}}"
+    );
+}
+document.getElementById("waMessage").value = localStorage.getItem("waTemplate");
+
+// ➕ AGREGAR TAREA (CORREGIDO)
+function addTask(){
+
+    const titleInput = document.getElementById("title");
+    const nameInput = document.getElementById("name");
+    const phoneInput = document.getElementById("phone");
+    const localityInput = document.getElementById("locality");
+    const referencesInput = document.getElementById("references");
+    const planInput = document.getElementById("plan");
+    const costInput = document.getElementById("cost");
+    const locationInput = document.getElementById("location");
+    const commentsInput = document.getElementById("comments");
+
+    if(titleInput.value.trim()==="" || nameInput.value.trim()===""){
+        alert("Título y nombre son obligatorios");
+        return;
+    }
+
+    tasks.push({
+        id: Date.now(),
+        user: loggedUser,
+        title: titleInput.value,
+        name: nameInput.value,
+        phone: phoneInput.value,
+        locality: localityInput.value,
+        references: referencesInput.value,
+        plan: planInput.value,
+        cost: costInput.value,
+        location: locationInput.value || "",
+        comments: commentsInput.value,
+        solution: "",
+        completed: false,
+        createdAt: new Date().toISOString()
+    });
+
+    localStorage.setItem("epconTasks", JSON.stringify(tasks));
+
+    // 🧹 Limpiar campos
+    document.querySelectorAll("input,textarea").forEach(e=>e.value="");
+    document.getElementById("waMessage").value = localStorage.getItem("waTemplate");
+
+    render();
+}
+
+// 🖨 Renderizar
+function render(){
+    const list = document.getElementById("taskList");
+    list.innerHTML="";
+
+    tasks.filter(t=>t.user===loggedUser).forEach(t=>{
+        const date = new Date(t.createdAt).toLocaleString();
+
+        list.innerHTML += `
+        <div class="task">
+            <b>${t.completed ? "✅" : ""} ${t.title}</b><br>
+            👤 ${t.name}<br>
+            📞 ${t.phone}<br>
+            🏠 ${t.locality}<br>
+            📍 ${t.location || "Sin ubicación"}<br>
+            🕒 ${date}<br>
+
+            <textarea placeholder="Solución" onchange="saveSolution(${t.id},this.value)">${t.solution}</textarea>
+
+            <button class="green" onclick="toggle(${t.id})">✔️ Completar</button>
+            <button class="primary" onclick="sendWA(${t.id})">📲 WhatsApp</button>
+            <button class="red" onclick="delTask(${t.id})">🗑 Eliminar</button>
+        </div>`;
+    });
+}
+
+// ✔️ Completar
+function toggle(id){
+    tasks = tasks.map(t=>t.id===id?{...t,completed:!t.completed}:t);
+    localStorage.setItem("epconTasks",JSON.stringify(tasks));
+    render();
+}
+
+// 💾 Guardar solución
+function saveSolution(id,val){
+    tasks = tasks.map(t=>t.id===id?{...t,solution:val}:t);
+    localStorage.setItem("epconTasks",JSON.stringify(tasks));
+}
+
+// 🗑 Eliminar
+function delTask(id){
+    if(confirm("¿Eliminar actividad?")){
+        tasks = tasks.filter(t=>t.id!==id);
+        localStorage.setItem("epconTasks",JSON.stringify(tasks));
+        render();
+    }
+}
+
+// 📲 WhatsApp
+function sendWA(id){
+    const t = tasks.find(x=>x.id===id);
+    let msg = document.getElementById("waMessage").value;
+    localStorage.setItem("waTemplate",msg);
+
+    msg = msg
+        .replace("{{nombre}}",t.name)
+        .replace("{{titulo}}",t.title)
+        .replace("{{plan}}",t.plan)
+        .replace("{{costo}}",t.cost)
+        .replace("{{ubicacion}}",t.location || "Sin ubicación");
+
+    window.open(`https://wa.me/52${t.phone}?text=${encodeURIComponent(msg)}`);
+}
+
+// 📄 PDF
+function exportPDF(){
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF();
+    let y = 10;
+
+    tasks.filter(t=>t.user===loggedUser).forEach((t,i)=>{
+        pdf.text(`Actividad ${i+1}`,10,y); y+=6;
+        pdf.text(`Título: ${t.title}`,10,y); y+=6;
+        pdf.text(`Cliente: ${t.name}`,10,y); y+=6;
+        pdf.text(`Teléfono: ${t.phone}`,10,y); y+=6;
+        pdf.text(`Localidad: ${t.locality}`,10,y); y+=6;
+        pdf.text(`Plan: ${t.plan}`,10,y); y+=6;
+        pdf.text(`Costo: ${t.cost}`,10,y); y+=6;
+        pdf.text(`Ubicación: ${t.location || "Sin ubicación"}`,10,y); y+=6;
+        pdf.text(`Comentarios: ${t.comments}`,10,y); y+=6;
+        pdf.text(`Solución: ${t.solution}`,10,y); y+=10;
+    });
+
+    pdf.save("epcon_tareas.pdf");
+}
+
+render();
+</script>
+
+</body>
+</html>
