@@ -1,46 +1,189 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>EPCON | Login</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Corazón A Y A ❤️</title>
+
 <style>
-body{font-family:Arial;background:#f0f2f5;display:flex;justify-content:center;align-items:center;height:100vh}
-.card{background:#fff;width:320px;padding:25px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.2)}
-h2{text-align:center;color:#1877f2}
-input,button{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:1px solid #ccc}
-button{background:#1877f2;color:#fff;border:none}
+body{
+    margin:0;
+    overflow:hidden;
+    background: radial-gradient(circle at center,#111,#05070c);
+    font-family:system-ui;
+}
+
+/* botones */
+.controls{
+    position:fixed;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:10;
+    display:flex;
+    gap:15px;
+}
+
+button{
+    padding:12px 26px;
+    border:none;
+    border-radius:30px;
+    font-size:16px;
+    cursor:pointer;
+    background:#ff2f90;
+    color:white;
+}
+
+/* escena */
+#scene{
+    width:100vw;
+    height:100vh;
+    position:relative;
+}
+
+/* partículas */
+.petal{
+    position:absolute;
+    width:10px;
+    height:10px;
+    background:#ff4da6;
+    border-radius:50%;
+    pointer-events:none;
+}
+
+/* texto interior */
+#texto{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    font-size:80px;
+    font-weight:bold;
+    color:white;
+    letter-spacing:20px;
+    opacity:0;
+    transition:1s;
+    text-shadow:0 0 25px #ff2f90;
+}
 </style>
 </head>
+
 <body>
 
-<div class="card">
-<h2>EPCON</h2>
-<input id="user" placeholder="Usuario">
-<input id="pass" type="password" placeholder="Contraseña">
-<button onclick="login()">Iniciar sesión</button>
-<button onclick="register()">Crear cuenta</button>
+<div class="controls">
+    <button onclick="armar()">👁️ Ver</button>
+    <button onclick="desarmar()">🙈 Tapar</button>
+</div>
+
+<div id="scene">
+    <div id="texto">A Y A</div>
 </div>
 
 <script>
-let users = JSON.parse(localStorage.getItem("users")) || [];
+const scene = document.getElementById("scene");
+const texto = document.getElementById("texto");
 
-function login(){
-    const u=user.value,p=pass.value;
-    const ok=users.find(x=>x.user===u&&x.pass===p);
-    if(!ok)return alert("Datos incorrectos");
-    localStorage.setItem("loggedUser",u);
-    location.href="home.html";
+const TOTAL = 900;   // más partículas para forma precisa
+let pieces = [];
+let anim;
+let flotando = true;
+
+/* crear partículas */
+for(let i=0;i<TOTAL;i++){
+    const p=document.createElement("div");
+    p.className="petal";
+
+    p.x=Math.random()*innerWidth;
+    p.y=Math.random()*innerHeight;
+
+    p.style.left=p.x+"px";
+    p.style.top=p.y+"px";
+
+    scene.appendChild(p);
+    pieces.push(p);
 }
 
-function register(){
-    const u=user.value,p=pass.value;
-    if(!u||!p)return alert("Completa campos");
-    if(users.some(x=>x.user===u))return alert("Usuario existe");
-    users.push({user:u,pass:p});
-    localStorage.setItem("users",JSON.stringify(users));
-    alert("Cuenta creada");
+/* ecuación corazón */
+function heart(t, scale){
+    const x = 16*Math.pow(Math.sin(t),3);
+    const y =
+        13*Math.cos(t)
+        -5*Math.cos(2*t)
+        -2*Math.cos(3*t)
+        -Math.cos(4*t);
+
+    return {
+        x: x*scale,
+        y: -y*scale
+    };
 }
+
+/* ❤️ ARMAR */
+function armar(){
+
+    flotando=false;
+    cancelAnimationFrame(anim);
+
+    const cx=innerWidth/2;
+    const cy=innerHeight/2;
+
+    pieces.forEach((p,i)=>{
+
+        const t = (i/TOTAL)*Math.PI*2;
+        const h = heart(t,14);
+
+        const tx = cx + h.x;
+        const ty = cy + h.y;
+
+        p.x=tx;
+        p.y=ty;
+
+        p.style.transition="1.6s cubic-bezier(.2,1,.2,1)";
+        p.style.left=tx+"px";
+        p.style.top=ty+"px";
+    });
+
+    texto.style.opacity=1;
+}
+
+/* 💥 DESARMAR */
+function desarmar(){
+
+    texto.style.opacity=0;
+    flotando=true;
+
+    pieces.forEach(p=>{
+        const a=Math.random()*Math.PI*2;
+        const d=600+Math.random()*600;
+
+        p.x=innerWidth/2+Math.cos(a)*d;
+        p.y=innerHeight/2+Math.sin(a)*d;
+
+        p.style.transition="1.8s ease-out";
+        p.style.left=p.x+"px";
+        p.style.top=p.y+"px";
+    });
+
+    flotar();
+}
+
+/* ✨ movimiento libre */
+function flotar(){
+    if(!flotando) return;
+
+    pieces.forEach(p=>{
+        p.x+=(Math.random()-.5)*1.4;
+        p.y+=(Math.random()-.5)*1.4;
+
+        p.style.left=p.x+"px";
+        p.style.top=p.y+"px";
+    });
+
+    anim=requestAnimationFrame(flotar);
+}
+
+flotar();
 </script>
+
 </body>
 </html>
